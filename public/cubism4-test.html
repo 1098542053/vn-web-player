@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Live2D Cubism 4 Test</title>
+<style>
+body { background:#111; color:#0f0; font-family:monospace; padding:10px; }
+canvas { display:block; margin:10px 0; border:1px solid #333; }
+.btn { background:#333; color:#0f0; border:1px solid #0f0; padding:8px 20px; cursor:pointer; }
+.btn:hover { background:#0f0; color:#000; }
+#log { max-height:400px; overflow:auto; font-size:13px; background:#1a1a1a; padding:10px; }
+</style>
+</head>
+<body>
+<h2>Live2D Cubism 4 Test</h2>
+<button class="btn" onclick="startTest()">开始测试</button>
+<div id="cv-container" style="width:854px;height:480px;border:1px solid #333;background:#222;margin:10px 0;position:relative;"></div>
+<div id="log"></div>
+<script src="lib/pixi.min.js"></script>
+<script src="lib/live2dcubismcore.min.js"></script>
+<script src="lib/pixi-live2d-display.min.js"></script>
+<script>
+function startTest() {
+  var log = document.getElementById('log');
+  var container = document.getElementById('cv-container');
+  log.innerHTML = '';
+  log.innerHTML += 'PIXI: ' + (typeof PIXI !== 'undefined') + '<br>';
+  log.innerHTML += 'PIXI.live2d: ' + (typeof PIXI.live2d !== 'undefined') + '<br>';
+  log.innerHTML += 'Live2DCubismCore: ' + (typeof Live2DCubismCore !== 'undefined') + '<br>';
+  var app = new PIXI.Application({ width: 854, height: 480, backgroundColor: 0x33334c, antialias: true, resolution: 1 });
+  container.appendChild(app.view);
+  log.innerHTML += 'PIXI app created<br>';
+  PIXI.live2d.Live2DModel.from('/live2d-model/l2d00003/model.model.json').then(function(model) {
+    log.innerHTML += 'Model loaded OK<br>';
+    model.anchor.set(0.5, 0.5);
+    model.position.set(427, 240);
+    model.scale.set(1.0);
+    app.stage.addChild(model);
+    log.innerHTML += 'Model added to stage<br>';
+  }).catch(function(err) { log.innerHTML += 'FAIL: ' + err.message + '<br>'; });
+}
+</script>
+</body>
+</html>

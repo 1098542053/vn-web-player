@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Live2D 完整测试 - 支持所有格式</title>
+<style>
+body { background:#111; color:#0f0; font-family:monospace; padding:10px; }
+canvas { display:block; margin:10px auto; border:1px solid #333; }
+#cv1, #cv2 { width:854px; height:480px; background:#444466; }
+#log { max-height:300px; overflow:auto; font-size:12px; background:#1a1a1a; padding:10px; }
+.test-box { border:1px solid #333; margin:10px 0; background:#1a1a1a; padding:10px; }
+.result { padding:8px; text-align:center; font-size:16px; }
+.pass { background:#030; color:#0f0; }
+.fail { background:#300; color:#f00; }
+</style>
+</head>
+<body>
+<h2>Live2D 完整测试</h2>
+<div class="test-box">
+  <h3>测试 1: 官方 Haru (Cubism 4 MOC3)</h3>
+  <canvas id="cv1"></canvas>
+  <div id="r1" class="result">测试中...</div>
+</div>
+<div class="test-box">
+  <h3>测试 2: 本地 l2d00003 (Cubism 2.1 moc)</h3>
+  <canvas id="cv2"></canvas>
+  <div id="r2" class="result">测试中...</div>
+</div>
+<div id="log"></div>
+<script src="/lib/pixi.min.js"></script>
+<script src="/lib/live2d.min.js"></script>
+<script src="/lib/live2dcubismcore.min.js"></script>
+<script src="/lib/pixi-live2d-display.min.js"></script>
+<script>
+window.PIXI = PIXI;
+var log = document.getElementById('log');
+function L(m) { log.innerHTML += m + '<br>'; }
+async function test(cvId, rId, url, label) {
+  var cv = document.getElementById(cvId);
+  var rs = document.getElementById(rId);
+  try {
+    var app = new PIXI.Application({ view: cv, width: 854, height: 480, backgroundColor: 0x444466 });
+    var model = await PIXI.live2d.Live2DModel.from(url);
+    L(label + ': 成功! 宽高=' + model.width + 'x' + model.height);
+    model.anchor.set(0.5, 0.5); model.position.set(427, 240); model.scale.set(0.5);
+    app.stage.addChild(model);
+    await new Promise(function(r) { setTimeout(r, 3000); });
+    var gl = app.renderer.gl, found = false;
+    for (var y=0; y<480; y+=20) for (var x=0; x<854; x+=20) {
+      var p = new Uint8Array(4);
+      gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, p);
+      if (Math.abs(p[0]-68)+Math.abs(p[1]-68)+Math.abs(p[2]-102) > 30) { found = true; break; }
+      if (found) break;
+    }
+    rs.className = 'result ' + (found ? 'pass' : 'fail');
+    rs.textContent = found ? '渲染成功!' : '全屏背景色';
+  } catch(e) {
+    L(label + ' 错误: ' + e.message);
+    rs.className = 'result fail';
+    rs.textContent = '错误: ' + e.message;
+  }
+}
+L('PIXI: ' + PIXI.VERSION);
+L('Live2D: ' + (typeof Live2D !== 'undefined'));
+L('Core: ' + (typeof Live2DCubismCore !== 'undefined'));
+test('cv1', 'r1', 'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/haru/haru_greeter_t03.model3.json', 'Haru(MOC3)');
+test('cv2', 'r2', '/live2d-model/l2d00003/model.model.json', 'l2d00003(moc)');
+</script>
+</body>
+</html>
